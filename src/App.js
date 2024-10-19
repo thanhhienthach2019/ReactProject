@@ -30,8 +30,8 @@ function App() {
         <Suspense fallback={<Loader center content="Loading..." vertical />}>
           <div ref={nodeRef}> {/* Áp dụng ref vào div */}
             <Routes>
-              <Route path="/" element={<Navigate to={isAuthenticated() ? "/main" : "/login"} />} />
-              <Route path="/login" element={isAuthenticated() ? <Navigate to="/main" /> : <Login />} />
+              <Route path="/" element={<Navigate to={isAuthenticated() ? <Main /> : <Login />} />} />                            
+              <Route path="/login" element={!isAuthenticated() ? <Login /> : <Main />} />
               <Route path="/main" element={
                 <PrivateRoute>
                   <Main />

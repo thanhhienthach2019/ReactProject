@@ -40,8 +40,7 @@ const Main = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');    
     ToastUtils.success('Đăng xuất thành công!');
-    setTimeout(() => {
-      // window.location.reload();
+    setTimeout(() => {      
       navigate('/login');
     }, 1000);
   };

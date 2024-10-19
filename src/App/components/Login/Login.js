@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import './Login.css';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
@@ -36,37 +36,54 @@ const Login = () => {
     const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
     const [expiryTime, setExpiryTime] = useState(0);
     const [remainingTime, setRemainingTime] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);    
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isFactorLogin, setisFactorLogin] = useState(false);
 
-    // timer
+    const remainingTimeRef = useRef(remainingTime);
+    const requiresTwoFactorRef = useRef(requiresTwoFactor);
+
+    // Effect for setting remaining time based on expiry time
     useEffect(() => {
         if (requiresTwoFactor && expiryTime > 0) {
             setRemainingTime(expiryTime * 60); // Convert min to sec
+            requiresTwoFactorRef.current = true; // Store the current state
         }
     }, [requiresTwoFactor, expiryTime]);
 
+    // Effect for keeping track of remaining time
+    useEffect(() => {
+        remainingTimeRef.current = remainingTime; // Keep track of remaining time
+    }, [remainingTime]);
+
+    // Effect for handling countdown timer
     useEffect(() => {
         let interval;
-        if (remainingTime > 0 && requiresTwoFactor) {
-            interval = setInterval(() => {
-                setRemainingTime((prevTime) => prevTime - 1);
-            }, 1000);
+        if (requiresTwoFactorRef.current) {
+            if (remainingTimeRef.current > 0) {
+                interval = setInterval(() => {
+                    setRemainingTime((prevTime) => {
+                        if (prevTime <= 1) {
+                            setMessage({ content: 'Hết thời gian xác thực. Vui lòng đăng nhập lại.', type: 'error' });
+                            setRequiresTwoFactor(false); // Back to login
+                            return 0; // Clear the interval
+                        }
+                        return prevTime - 1; // Decrement time
+                    });
+                }, 1000);
+            }
+
+            return () => {
+                clearInterval(interval); // Clean up interval on unmount or before next run
+            };
         }
+    }, [requiresTwoFactor]); // Only run when requiresTwoFactor changes
 
-        if (remainingTime === 0 && requiresTwoFactor) {
-            setMessage({ content: 'Hết thời gian xác thực. Vui lòng đăng nhập lại.', type: 'error' });
-            setRequiresTwoFactor(false); // back to login
-        }
-
-        return () => clearInterval(interval);
-    }, [remainingTime, requiresTwoFactor]);
-
-    const getDeviceFingerprint = async () => {
+    const getDeviceFingerprint = async () => {        
         const fp = await FingerprintJS.load();
         const result = await fp.get();
+        console.log(result.visitorId);
         return result.visitorId;
     };
 
@@ -85,23 +102,24 @@ const Login = () => {
             if (response.data.requiresTwoFactor) {
                 setRequiresTwoFactor(true);
                 setMessage({ content: response.data.Message, type: 'info' });
-                setRemainingTime(1);
+                setRemainingTime(1); // Reset timer
                 setExpiryTime(response.data.expiryTime);
             } else {
                 localStorage.setItem('token', response.data.token);
-                localStorage.setItem('refreshToken', response.data.refreshToken);                
-                ToastUtils.success('Đăng nhập thành công');                            
+                localStorage.setItem('refreshToken', response.data.refreshToken);
+                ToastUtils.success('Đăng nhập thành công');
+
                 setTimeout(() => {
                     navigate('/main');
                 }, 1000);
-                setIsLoggedIn(true);                
+                setIsLoggedIn(true);
             }
         } catch (error) {
-            const content = error.response?.data?.message || 'Đăng nhập thất bại!';            
+            const content = error.response?.data?.message || 'Đăng nhập thất bại!';
             ToastUtils.error(content);
-            return false; 
+            return false;
         } finally {
-            setIsLoading(false); // Kết thúc chờ
+            setIsLoading(false);
         }
     }, [username, password, navigate]);
 
@@ -118,14 +136,15 @@ const Login = () => {
                 },
             });
             localStorage.setItem('token', response.data.token);
-            localStorage.setItem('refreshToken', response.data.refreshToken);            
+            localStorage.setItem('refreshToken', response.data.refreshToken);
             ToastUtils.success('Xác thực thành công');
+
             setTimeout(() => {
                 navigate('/main');
-            }, 1000);             
+            }, 1000);
             setisFactorLogin(true);
         } catch (error) {
-            const content = error.response?.data || 'Xác thực mã thất bại!';            
+            const content = error.response?.data?.message || 'Xác thực mã thất bại!';
             ToastUtils.error(content);
             return false;
         } finally {
@@ -133,7 +152,7 @@ const Login = () => {
         }
     }, [username, twoFactorCode, navigate]);
 
-    // convert min to sec for display
+    // Convert seconds to minutes and seconds for display
     const minutes = Math.floor(remainingTime / 60);
     const seconds = remainingTime % 60;
 
@@ -157,23 +176,27 @@ const Login = () => {
                                     <Form.ControlLabel>Mật khẩu</Form.ControlLabel>
                                     <Form.Control name="password" autoComplete="off" accepter={Password} value={password} onChange={(e) => setPassword(e.target.value)} required />
                                 </Form.Group>
-                                <VStack spacing={10}>
-                                    {isLoading ? (
-                                        <Loader center content="Đang xử lý..." />
-                                    ) : (
-                                        !isLoggedIn ? ( // Nếu chưa đăng nhập
-                                            <Button appearance="primary" block type="submit">
-                                                Đăng nhập
-                                            </Button>
-                                        ) : ( // Nếu đã đăng nhập
+                                <Form.Group>
+                                    <VStack spacing={10}>
+                                        {isLoading ? (
                                             <Loader center content="Đang xử lý..." />
-                                        )
-                                    )}
+                                        ) : (
+                                            !isLoggedIn ? (
+                                                <Button appearance="primary" block type="submit">
+                                                    Đăng nhập
+                                                </Button>
+                                            ) : (
+                                                <Loader center content="Đang xử lý..." />
+                                            )
+                                        )}
+                                    </VStack>
+                                </Form.Group>
+                                <Form.Group>
                                     <div className="login-links">
                                         <a href="/register">Tạo tài khoản</a>
                                         <a href="/forgot-password">Quên mật khẩu?</a>
                                     </div>
-                                </VStack>
+                                </Form.Group>
                             </Form>
                         ) : (
                             <Form fluid onSubmit={handleTwoFactorLogin}>
@@ -184,35 +207,37 @@ const Login = () => {
                                     <Form.ControlLabel>Mã xác thực</Form.ControlLabel>
                                     <Form.Control name="twoFactorCode" value={twoFactorCode} onChange={(e) => setTwoFactorCode(e)} required />
                                 </Form.Group>
-                                <p style={{ textAlign: 'center', color: 'red' }}>
-                                    Thời gian còn lại: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
-                                </p>
-                                <VStack spacing={10}>
-                                    {isLoading ? (
-                                        <Loader center content="Đang xử lý..." />
-                                    ) : (
-                                        !isFactorLogin ? ( // Nếu chưa xác thực
-                                            <Button appearance="primary" block type="submit">
-                                                Xác thực
-                                            </Button>
-                                        ) : ( // Nếu đã xác thực 
+                                <Form.Group>
+                                    <VStack spacing={10}>
+                                        {isLoading ? (
                                             <Loader center content="Đang xử lý..." />
-                                        )
-                                    )}
-                                </VStack>
+                                        ) : (
+                                            !isFactorLogin ? (
+                                                <Button appearance="primary" block type="submit">
+                                                    Xác thực
+                                                </Button>
+                                            ) : (
+                                                <Loader center content="Đang xử lý..." />
+                                            )
+                                        )}
+                                    </VStack>
+                                </Form.Group>
+                                <Form.Group>
+                                    <p style={{ textAlign: 'center', color: 'red' }}>
+                                        Thời gian còn lại: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+                                    </p>
+                                </Form.Group>
                             </Form>
                         )}
-
                         <Divider>HOẶC</Divider>
-
-                        <Button endIcon={<FaGoogle />} block href="#">
-                            Tiếp tục với Google
+                        <Button endIcon={<FaGoogle />} appearance="default" block>
+                            Đăng nhập với Google
                         </Button>
                     </Panel>
                 </Stack>
             </Content>
-            <Footer>
-                <p style={{ textAlign: 'center' }}>Bản quyền © 2024</p>
+            <Footer style={{ textAlign: 'center' }}>
+                © 2024 Đăng nhập
             </Footer>
         </Container>
     );
