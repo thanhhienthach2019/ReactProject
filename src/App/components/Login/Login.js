@@ -80,10 +80,9 @@ const Login = () => {
         }
     }, [requiresTwoFactor]); // Only run when requiresTwoFactor changes
 
-    const getDeviceFingerprint = async () => {        
+    const getDeviceFingerprint = async () => {
         const fp = await FingerprintJS.load();
         const result = await fp.get();
-        console.log(result.visitorId);
         return result.visitorId;
     };
 
@@ -106,7 +105,7 @@ const Login = () => {
                 setExpiryTime(response.data.expiryTime);
             } else {
                 localStorage.setItem('token', response.data.token);
-                localStorage.setItem('refreshToken', response.data.refreshToken);
+                // localStorage.setItem('refreshToken', response.data.refreshToken);
                 ToastUtils.success('Đăng nhập thành công');
 
                 setTimeout(() => {
@@ -136,7 +135,7 @@ const Login = () => {
                 },
             });
             localStorage.setItem('token', response.data.token);
-            localStorage.setItem('refreshToken', response.data.refreshToken);
+            // localStorage.setItem('refreshToken', response.data.refreshToken);
             ToastUtils.success('Xác thực thành công');
 
             setTimeout(() => {

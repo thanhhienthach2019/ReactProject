@@ -38,9 +38,9 @@ const Main = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');    
+    localStorage.removeItem('refreshToken');
     ToastUtils.success('Đăng xuất thành công!');
-    setTimeout(() => {      
+    setTimeout(() => {
       navigate('/login');
     }, 1000);
   };
