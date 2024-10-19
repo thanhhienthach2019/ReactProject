@@ -1,0 +1,59 @@
+.fake-browser {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .fake-browser-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .fake-browser-dots {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  
+  .dot.red {
+    background-color: #ff5f57;
+  }
+  
+  .dot.yellow {
+    background-color: #ffbd2e;
+  }
+  
+  .dot.green {
+    background-color: #28c840;
+  }
+  
+  .fake-browser-content {
+    padding: 20px;
+    overflow-y: auto;
+    height: calc(100% - 40px); /* Trừ đi chiều cao của header */
+  }
+  .sidebar-page .rs-sidebar {
+    transition: width 0.3s ease-in-out; /* Chuyển đổi mượt khi thay đổi độ rộng */
+  }
+  .container {
+    transition: margin 0.3s ease-in-out, padding 0.3s ease-in-out; /* Thêm hiệu ứng cho margin và padding */
+  }
+  .rs-sidebar {
+    overflow: auto; /* Để đảm bảo rằng nội dung không bị tràn ra ngoài */
+  }
+  
+  .fake-browser-content {
+    overflow: hidden; /* Để nội dung không bị tràn ra */
+  }
