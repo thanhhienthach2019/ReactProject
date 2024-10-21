@@ -104,8 +104,8 @@ const Login = () => {
                 setRemainingTime(1); // Reset timer
                 setExpiryTime(response.data.expiryTime);
             } else {
-                localStorage.setItem('token', response.data.token);
-                // localStorage.setItem('refreshToken', response.data.refreshToken);
+                 localStorage.setItem('token', response.data.token);
+                //  localStorage.setItem('refreshToken', response.data.refreshToken);
                 ToastUtils.success('Đăng nhập thành công');
 
                 setTimeout(() => {
@@ -133,15 +133,16 @@ const Login = () => {
                 headers: {
                     'device-fingerprint': deviceFingerprint,
                 },
-            });
-            localStorage.setItem('token', response.data.token);
-            // localStorage.setItem('refreshToken', response.data.refreshToken);
-            ToastUtils.success('Xác thực thành công');
-
-            setTimeout(() => {
-                navigate('/main');
-            }, 1000);
-            setisFactorLogin(true);
+            });       
+            if(response.data.statusLogin){
+                ToastUtils.success('Xác thực thành công');
+                localStorage.setItem('token', response.data.token);
+                // localStorage.setItem('refreshToken', response.data.refreshToken);
+                setTimeout(() => {
+                    navigate('/main');
+                }, 1000);
+                setisFactorLogin(true);
+            }            
         } catch (error) {
             const content = error.response?.data?.message || 'Xác thực mã thất bại!';
             ToastUtils.error(content);

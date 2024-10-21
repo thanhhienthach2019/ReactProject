@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS cho react-toastify
 // Lazy load components
 const Login = lazy(() => import('./App/components/Login/Login'));
 const Main = lazy(() => import('./App/components/Main/Main'));
+const Product = lazy(() => import('./App/components/Product/Product'));
 
 const isAuthenticated = () => {
   return !!localStorage.getItem('token');
@@ -35,6 +36,11 @@ function App() {
               <Route path="/main" element={
                 <PrivateRoute>
                   <Main />
+                </PrivateRoute>
+              } />
+              <Route path="/products" element={
+                <PrivateRoute>
+                  <Product />
                 </PrivateRoute>
               } />
               <Route path="/dashboard" element={<h2>Chào mừng đến trang chính</h2>} />

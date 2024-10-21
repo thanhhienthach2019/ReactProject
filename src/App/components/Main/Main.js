@@ -52,7 +52,7 @@ const Main = () => {
   // Chọn component để hiển thị
   const renderContent = () => {
     switch (activeComponent) {
-      case 'product':
+      case 'products':
         return <Product />;
       case 'dashboard':
         return <div>Nội dung Dashboard</div>;
@@ -78,7 +78,7 @@ const Main = () => {
                 <Nav.Item eventKey="1" icon={<Icon as={MdDashboard} />} onSelect={() => handleMenuClick('dashboard')}>
                   Dashboard
                 </Nav.Item>
-                <Nav.Item eventKey="2" icon={<Icon as={MdOutlineProductionQuantityLimits} />} onSelect={() => handleMenuClick('product')}>
+                <Nav.Item eventKey="2" icon={<Icon as={MdOutlineProductionQuantityLimits} />} onSelect={() => handleMenuClick('products')}>
                   Product
                 </Nav.Item>
                 <Nav.Item eventKey="3" icon={<Icon as={MdGroup} />} onSelect={() => handleMenuClick('userGroup')}>
